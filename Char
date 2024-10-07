@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <string.h>
+
+#define DLE 16  // CTRL+P for DLE
+#define STX 2   // CTRL+B for STX
+#define ETX 3   // CTRL+C for ETX
+
+int main() {
+    int ch;               // To store the character input (CTRL inputs)
+    char data[100];        // To hold the original data
+    char stuffed[200];     // To hold the stuffed data
+    int i = 0, j = 0, k = 0;
+
+    printf("\nEnter the data stream (CTRL+B -> STX, CTRL+C -> ETX, CTRL+P -> DLE, ENTER to stop):\n");
+
+    // Input data stream
+    while ((ch = getchar()) != '\n') {  // Read characters until ENTER is pressed
+        if (ch == DLE) {
+            data[i++] = DLE;  // Store DLE character
+            printf("DLE");
+        } else if (ch == STX) {
+            data[i++] = STX;  // Store STX character
+            printf("STX");
+        } else if (ch == ETX) {
+            data[i++] = ETX;  // Store ETX character
+            printf("ETX");
+        } else {
+            data[i++] = ch;   // Store normal data characters
+            printf("%c", ch); // Print character as it is
+        }
+    }
+    data[i] = '\0';  // Null-terminate the data string
+
+    // Character stuffing
+    stuffed[j++] = DLE;  // Add starting DLE
+    stuffed[j++] = STX;  // Add starting STX
+
+    for (k = 0; k < i; k++) {
+        if (data[k] == DLE) {
+            stuffed[j++] = DLE;  // Add extra DLE to stuff
+        }
+        stuffed[j++] = data[k];  // Add the actual data character
+    }
+
+    stuffed[j++] = DLE;  // Add ending DLE
+    stuffed[j++] = ETX;  // Add ending ETX
+    stuffed[j] = '\0';   // Null-terminate the stuffed string
+
+    // Output stuffed data
+    printf("\nThe stuffed stream is:\n");
+    for (k = 0; k < j; k++) {
+        if (stuffed[k] == DLE) {
+            printf("DLE");
+        } else if (stuffed[k] == STX) {
+            printf("STX");
+        } else if (stuffed[k] == ETX) {
+            printf("ETX");
+        } else {
+            printf("%c", stuffed[k]);  // Print normal characters
+        }
+    }
+
+    // Character destuffing
+    printf("\n\nThe de-stuffed data is:\n");
+    if (stuffed[0] == DLE && stuffed[1] == STX) {  // Check starting DLE and STX
+        for (k = 2; k < j - 2; k++) {  // Skip starting and ending DLE/ETX
+            if (stuffed[k] == DLE && stuffed[k + 1] == DLE) {
+                printf("DLE");  // Print DLE if two DLEs are found
+                k++;  // Skip the extra stuffed DLE
+            } else if (stuffed[k] == STX) {
+                printf("STX");
+            } else if (stuffed[k] == ETX) {
+                printf("ETX");
+            } else {
+                printf("%c", stuffed[k]);  // Print normal characters
+            }
+        }
+    }
+
+    return 0;
+}
